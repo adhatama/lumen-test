@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Http\Request;
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -14,3 +16,11 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->post('login', [
+    'as' => 'auth.login', 'uses' => 'AuthController@login',
+]);
+
+$router->get('user', ['middleware' => 'auth', function (Request $request) {
+    return new App\Http\Resources\User($request->user());
+}]);
