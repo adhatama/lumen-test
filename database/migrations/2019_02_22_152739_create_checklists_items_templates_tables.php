@@ -17,7 +17,7 @@ class CreateChecklistsItemsTemplatesTables extends Migration
             $table->string('object_id');
             $table->string('description');
             $table->boolean('is_completed');
-            $table->datetime('complated_at');
+            $table->datetime('completed_at');
             $table->datetime('due');
             $table->smallInteger('urgency');
             $table->string('updated_by');
@@ -32,7 +32,7 @@ class CreateChecklistsItemsTemplatesTables extends Migration
             $table->string('object_id');
             $table->string('description');
             $table->boolean('is_completed');
-            $table->datetime('complated_at');
+            $table->datetime('completed_at');
             $table->datetime('due');
             $table->smallInteger('urgency');
             $table->string('updated_by');
