@@ -21,6 +21,24 @@ $router->post('login', [
     'as' => 'auth.login', 'uses' => 'AuthController@login',
 ]);
 
+$router->group(['middleware' => 'auth'], function () use ($router) {
+    $router->get('checklists', [
+        'as' => 'checklists.index', 'uses' => 'ChecklistController@index',
+    ]);
+    $router->get('checklists/{id}', [
+        'as' => 'checklists.get', 'uses' => 'ChecklistController@get',
+    ]);
+    $router->post('checklists', [
+        'as' => 'checklists.save', 'uses' => 'ChecklistController@save',
+    ]);
+    $router->patch('checklists/{id}', [
+        'as' => 'checklists.update', 'uses' => 'ChecklistController@update',
+    ]);
+    $router->post('checklists/{id}', [
+        'as' => 'checklists.delete', 'uses' => 'ChecklistController@delete',
+    ]);
+});
+
 $router->get('user', ['middleware' => 'auth', function (Request $request) {
     return new App\Http\Resources\User($request->user());
 }]);

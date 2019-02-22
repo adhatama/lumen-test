@@ -17,10 +17,10 @@ class CreateChecklistsItemsTemplatesTables extends Migration
             $table->string('object_id');
             $table->string('description');
             $table->boolean('is_completed');
-            $table->datetime('completed_at');
-            $table->datetime('due');
-            $table->smallInteger('urgency');
-            $table->string('updated_by');
+            $table->datetime('completed_at')->nullable();
+            $table->datetime('due')->nullable();
+            $table->smallInteger('urgency')->nullable();
+            $table->string('updated_by')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
@@ -32,10 +32,10 @@ class CreateChecklistsItemsTemplatesTables extends Migration
             $table->string('object_id');
             $table->string('description');
             $table->boolean('is_completed');
-            $table->datetime('completed_at');
-            $table->datetime('due');
-            $table->smallInteger('urgency');
-            $table->string('updated_by');
+            $table->datetime('completed_at')->nullable();
+            $table->datetime('due')->nullable();
+            $table->smallInteger('urgency')->nullable();
+            $table->string('updated_by')->nullable();
 
             $table->unsignedInteger('checklist_id');
             $table->foreign('checklist_id')->references('id')->on('checklists');

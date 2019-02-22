@@ -3,8 +3,25 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Checklist extends Model
 {
+    use TimestampMutatorAccessorTrait;
+
     protected $guarded = [];
+
+    protected $attributes = [
+        'is_completed' => false,
+    ];
+
+    public function setDueAttribute($value)
+    {
+        $this->attributes['due'] = Carbon::parse($value);
+    }
+
+    public function getDueAttribute()
+    {
+        return $this->attributes['due'] ? Carbon::parse($this->attributes['due'])->toIso8601String() : null;
+    }
 }
