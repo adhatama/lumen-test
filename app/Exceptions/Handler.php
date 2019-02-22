@@ -3,11 +3,11 @@
 namespace App\Exceptions;
 
 use Exception;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Http\JsonResponse;
 
 class Handler extends ExceptionHandler
 {
@@ -28,8 +28,7 @@ class Handler extends ExceptionHandler
      *
      * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
      *
-     * @param  \Exception  $exception
-     * @return void
+     * @param \Exception $exception
      */
     public function report(Exception $exception)
     {
@@ -39,12 +38,66 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
+     * @param \Illuminate\Http\Request $request
+     * @param \Exception               $exception
+     *
      * @return \Illuminate\Http\Response
      */
     public function render($request, Exception $exception)
     {
-        return parent::render($request, $exception);
+        // Handle built-in exceptions
+        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+            $response['message'] = 'Not found';
+
+            return response()->json($response, JsonResponse::HTTP_NOT_FOUND);
+        }
+        if ($exception instanceof \Illuminate\Auth\Access\AuthorizationException) {
+            $response['message'] = 'Forbidden';
+
+            return response()->json($response, JsonResponse::HTTP_FORBIDDEN);
+        }
+        if ($exception instanceof \Illuminate\Auth\AuthenticationException ||
+            $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException) {
+            $response['message'] = 'Unauthorized';
+            if ($exception->getMessage()) {
+                $response['message'] = $exception->getMessage();
+            }
+
+            return response()->json($response, JsonResponse::HTTP_UNAUTHORIZED);
+        }
+        if ($exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+            $response['message'] = 'Data not found';
+
+            return response()->json($response, JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\BadRequestHttpException) {
+            $response['message'] = $exception->getMessage();
+
+            return response()->json($response, JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if ($exception instanceof \Illuminate\Validation\ValidationException) {
+            $response['message'] = 'Validation error';
+            $response['errors'] = $exception->errors();
+
+            return response()->json($response, JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Handle custom exception
+
+        // Here is unhandled Exception.
+
+        $response['message'] = $exception->getMessage();
+
+        // We will add stacktrace to help debugging the unhandled Exception.
+        if (env('APP_DEBUG')) {
+            $response['file'] = $exception->getFile();
+            $response['line'] = $exception->getLine();
+            $response['stack_trace'] = array_slice($exception->getTrace(), 0, 10);
+        }
+
+        return response()->json(
+            $response,
+            JsonResponse::HTTP_INTERNAL_SERVER_ERROR
+        );
     }
 }
