@@ -92,7 +92,7 @@ class Handler extends ExceptionHandler
         if (env('APP_DEBUG')) {
             $response['file'] = $exception->getFile();
             $response['line'] = $exception->getLine();
-            $response['stack_trace'] = array_slice($exception->getTrace(), 0, 10);
+            $response['stack_trace'] = array_slice($exception->getTrace(), 0, 3);
         }
 
         return response()->json(
