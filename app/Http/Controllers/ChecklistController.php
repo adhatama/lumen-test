@@ -17,6 +17,17 @@ class ChecklistController extends Controller
         return ChecklistResource::collection($checklists);
     }
 
+    public function get(Request $request, $id)
+    {
+        $checklist = Checklist::find($id);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        return new ChecklistResource($checklist);
+    }
+
     public function save(Request $request)
     {
         $this->validate($request, [
