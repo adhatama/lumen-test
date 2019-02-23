@@ -47,6 +47,12 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->post('checklists/{checklistId}/items', [
         'as' => 'checklists.items.save', 'uses' => 'ChecklistController@saveItem',
     ]);
+    $router->patch('checklists/{checklistId}/items/{itemId}', [
+        'as' => 'checklists.items.update', 'uses' => 'ChecklistController@updateItem',
+    ]);
+    $router->delete('checklists/{checklistId}/items/{itemId}', [
+        'as' => 'checklists.items.delete', 'uses' => 'ChecklistController@deleteItem',
+    ]);
 });
 
 $router->get('user', ['middleware' => 'auth', function (Request $request) {

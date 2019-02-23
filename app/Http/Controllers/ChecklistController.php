@@ -121,8 +121,49 @@ class ChecklistController extends Controller
         $attributes = $request->input('data.attributes');
         $attributes['checklist_id'] = $checklistId;
 
-        Item::create($attributes);
+        $item = Item::create($attributes);
 
-        return new ChecklistResource($checklist, true);
+        return new ItemResource($item);
+    }
+
+    public function updateItem(Request $request, $checklistId, $itemId)
+    {
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $item = Item::find($itemId);
+
+        if (!$item) {
+            throw new NotFoundHttpException();
+        }
+
+        $attributes = $request->input('data.attributes');
+        $attributes['checklist_id'] = $checklistId;
+
+        $item->update($attributes);
+
+        return new ItemResource($item);
+    }
+
+    public function deleteItem(Request $request, $checklistId, $itemId)
+    {
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $item = Item::find($itemId);
+
+        if (!$item) {
+            throw new NotFoundHttpException();
+        }
+
+        $item->delete();
+
+        return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 }
