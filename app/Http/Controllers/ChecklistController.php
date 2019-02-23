@@ -12,7 +12,7 @@ class ChecklistController extends Controller
 {
     public function index(Request $request)
     {
-        $checklists = Checklist::all();
+        $checklists = Checklist::paginate(config('app.pagination.per_page'));
 
         return ChecklistResource::collection($checklists);
     }
