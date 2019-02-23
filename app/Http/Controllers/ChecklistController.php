@@ -338,4 +338,99 @@ class ChecklistController extends Controller
 
         return new TemplateResource($template);
     }
+
+    public function assignTemplate(Request $request, $id)
+    {
+        $this->validate($request, [
+            'data.*.attributes.object_id' => 'required',
+            'data.*.attributes.object_domain' => 'required',
+        ]);
+
+        $template = Template::find($id);
+
+        if (!$template) {
+            throw new NotFoundHttpException();
+        }
+
+        $now = Carbon::now();
+
+        switch ($template->due_unit) {
+        case 'minute':
+            $due = Carbon::now();
+            $due->addMinutes($template->due_interval); break;
+        case 'hour':
+            $due = Carbon::now();
+            $due->addHours($template->due_interval); break;
+        case 'day':
+            $due = Carbon::now();
+            $due->addDays($template->due_interval); break;
+        case 'week':
+            $due = Carbon::now();
+            $due->addWeek($template->due_interval); break;
+        case 'month':
+            $due = Carbon::now();
+            $due->addMonths($template->due_interval); break;
+        }
+
+        $checklistData = [
+            'description' => $template->description,
+        ];
+
+        if ($due) {
+            $checklistData['due'] = $due;
+        }
+
+        $items = [];
+        foreach ($template->items as $item) {
+            $val['description'] = $item->description;
+            $val['urgency'] = $item->urgency;
+            $val['is_completed'] = false;
+            $val['created_at'] = $now;
+            $val['updated_at'] = $now;
+
+            switch ($item->due_unit) {
+            case 'minute':
+                $due = Carbon::now();
+                $due->addMinutes($item->due_interval); break;
+            case 'hour':
+                $due = Carbon::now();
+                $due->addHours($item->due_interval); break;
+            case 'day':
+                $due = Carbon::now();
+                $due->addDays($item->due_interval); break;
+            case 'week':
+                $due = Carbon::now();
+                $due->addWeek($item->due_interval); break;
+            case 'month':
+                $due = Carbon::now();
+                $due->addMonths($item->due_interval); break;
+            }
+
+            array_push($items, $val);
+        }
+
+        DB::beginTransaction();
+
+        $checklists = collect([]);
+        foreach ($request->input('data') as $data) {
+            $checklistData['object_id'] = $data['attributes']['object_id'];
+            $checklistData['object_domain'] = $data['attributes']['object_domain'];
+
+            $checklist = Checklist::create($checklistData);
+
+            foreach ($items as $key => $item) {
+                $items[$key]['checklist_id'] = $checklist->id;
+            }
+
+            Item::insert($items);
+
+            $checklist->load('items');
+
+            $checklists->push($checklist);
+        }
+
+        DB::commit();
+
+        return ChecklistResource::collection($checklists);
+    }
 }

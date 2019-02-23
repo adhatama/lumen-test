@@ -77,6 +77,9 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->delete('checklists/templates/{id}', [
         'as' => 'checklists.templates.delete', 'uses' => 'ChecklistController@deleteTemplate',
     ]);
+    $router->post('checklists/templates/{id}/assigns', [
+        'as' => 'checklists.templates.assign', 'uses' => 'ChecklistController@assignTemplate',
+    ]);
 });
 
 $router->get('user', ['middleware' => 'auth', function (Request $request) {
