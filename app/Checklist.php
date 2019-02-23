@@ -42,4 +42,9 @@ class Checklist extends Model
 
         return parent::delete();
     }
+
+    public function hasItems()
+    {
+        return count($this->items) > 0;
+    }
 }

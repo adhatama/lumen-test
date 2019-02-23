@@ -14,6 +14,7 @@ use App\Template;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\TemplateItem;
+use App\Repositories\ChecklistRepository;
 
 class ChecklistController extends Controller
 {
@@ -172,7 +173,7 @@ class ChecklistController extends Controller
         return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
-    public function completeItems(Request $request, $checklistId)
+    public function completeItems(Request $request, ChecklistRepository $checklistRepo, $checklistId)
     {
         $checklist = Checklist::find($checklistId);
 
@@ -182,17 +183,14 @@ class ChecklistController extends Controller
 
         $itemIds = collect($request->input('data'))->pluck('item_id');
 
-        Item::whereIn('id', $itemIds)->update(['is_completed' => true]);
+        $checklistRepo->completeItems($checklistId, $itemIds);
 
-        $countIncompleteItems = Item::where('checklist_id', $checklistId)
-            ->where('is_completed', false)
-            ->count();
-        if ($checklist->items()->count() > 0 && $countIncompleteItems === 0) {
-            Checklist::where('id', $checklistId)
-                ->update(['is_completed' => true]);
+        $countIncompleteItems = $checklistRepo->countIncompleteItems($checklistId);
+        if ($checklist->hasItems() && $countIncompleteItems === 0) {
+            $checklistRepo->completeChecklist($checklistId);
         }
 
-        $items = Item::whereIn('id', $itemIds)->get();
+        $items = $checklistRepo->getItemsByIds($checklistId, $itemIds);
 
         $data = [];
         foreach ($items as $item) {
@@ -206,7 +204,7 @@ class ChecklistController extends Controller
         return response()->json(['data' => $data], JsonResponse::HTTP_OK);
     }
 
-    public function incompleteItems(Request $request, $checklistId)
+    public function incompleteItems(Request $request, ChecklistRepository $checklistRepo, $checklistId)
     {
         $checklist = Checklist::find($checklistId);
 
@@ -216,17 +214,14 @@ class ChecklistController extends Controller
 
         $itemIds = collect($request->input('data'))->pluck('item_id');
 
-        Item::whereIn('id', $itemIds)->update(['is_completed' => false]);
+        $checklistRepo->uncompleteItems($checklistId, $itemIds);
 
-        $countIncompleteItems = Item::where('checklist_id', $checklistId)
-            ->where('is_completed', false)
-            ->count();
-        if ($checklist->items()->count() > 0 && $countIncompleteItems > 0) {
-            Checklist::where('id', $checklistId)
-                ->update(['is_completed' => false]);
+        $countIncompleteItems = $checklistRepo->countIncompleteItems($checklistId);
+        if ($checklist->hasItems() && $countIncompleteItems > 0) {
+            $checklistRepo->uncompleteChecklist($checklistId);
         }
 
-        $items = Item::whereIn('id', $itemIds)->get();
+        $items = $checklistRepo->getItemsByIds($checklistId, $itemIds);
 
         $data = [];
         foreach ($items as $item) {
