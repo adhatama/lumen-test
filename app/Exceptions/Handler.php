@@ -46,6 +46,11 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $exception)
     {
         // Handle built-in exceptions
+        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\BadRequestHttpException) {
+            $response['message'] = $exception->getMessage();
+
+            return response()->json($response, JsonResponse::HTTP_BAD_REQUEST);
+        }
         if ($exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
             $response['message'] = 'Not found';
 
@@ -67,11 +72,6 @@ class Handler extends ExceptionHandler
         }
         if ($exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
             $response['message'] = 'Data not found';
-
-            return response()->json($response, JsonResponse::HTTP_BAD_REQUEST);
-        }
-        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\BadRequestHttpException) {
-            $response['message'] = $exception->getMessage();
 
             return response()->json($response, JsonResponse::HTTP_BAD_REQUEST);
         }

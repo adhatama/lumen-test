@@ -2,8 +2,28 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
+// This is intended to read the .env.testing when doing migration:
+// php artisan migrate --seed --env=testing
+// The code snippet is gotten from here https://stackoverflow.com/a/41478817/1714112
+$suffix = '';
+
+if (php_sapi_name() == 'cli') {
+    $input = new Symfony\Component\Console\Input\ArgvInput();
+
+    if ($input->hasParameterOption('--env')) {
+        $suffix = '.'.$input->getParameterOption('--env');
+    }
+} elseif (env('APP_ENV')) {
+    $suffix = '.'.env('APP_ENV');
+}
+
+$env = '.env';
+if ($suffix && file_exists(__DIR__.'/../'.$env.$suffix)) {
+    $env .= $suffix;
+}
+
 try {
-    (new Dotenv\Dotenv(dirname(__DIR__)))->load();
+    (new Dotenv\Dotenv(__DIR__.'/../', $env))->load();
 } catch (Dotenv\Exception\InvalidPathException $e) {
 }
 
