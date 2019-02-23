@@ -11,7 +11,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\JsonResponse;
 use App\Item;
 use App\Template;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Repositories\ChecklistRepository;
 
@@ -306,7 +305,7 @@ class ChecklistController extends Controller
         return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
-    public function assignTemplate(Request $request, $id)
+    public function assignTemplate(Request $request, ChecklistRepository $checklistRepo, $id)
     {
         $this->validate($request, [
             'data.*.attributes.object_id' => 'required',
@@ -321,82 +320,32 @@ class ChecklistController extends Controller
 
         $now = Carbon::now();
 
-        switch ($template->due_unit) {
-        case 'minute':
-            $due = Carbon::now();
-            $due->addMinutes($template->due_interval); break;
-        case 'hour':
-            $due = Carbon::now();
-            $due->addHours($template->due_interval); break;
-        case 'day':
-            $due = Carbon::now();
-            $due->addDays($template->due_interval); break;
-        case 'week':
-            $due = Carbon::now();
-            $due->addWeek($template->due_interval); break;
-        case 'month':
-            $due = Carbon::now();
-            $due->addMonths($template->due_interval); break;
-        }
-
-        $checklistData = [
+        $templateChecklist = [
             'description' => $template->description,
         ];
 
+        $due = $template->getDueInDate();
         if ($due) {
-            $checklistData['due'] = $due;
+            $templateChecklist['due'] = $due;
         }
 
-        $items = [];
+        $templateItems = [];
         foreach ($template->items as $item) {
             $val['description'] = $item->description;
             $val['urgency'] = $item->urgency;
+            $val['due'] = $item->getDueInDate();
             $val['is_completed'] = false;
             $val['created_at'] = $now;
             $val['updated_at'] = $now;
 
-            switch ($item->due_unit) {
-            case 'minute':
-                $due = Carbon::now();
-                $due->addMinutes($item->due_interval); break;
-            case 'hour':
-                $due = Carbon::now();
-                $due->addHours($item->due_interval); break;
-            case 'day':
-                $due = Carbon::now();
-                $due->addDays($item->due_interval); break;
-            case 'week':
-                $due = Carbon::now();
-                $due->addWeek($item->due_interval); break;
-            case 'month':
-                $due = Carbon::now();
-                $due->addMonths($item->due_interval); break;
-            }
-
-            array_push($items, $val);
+            array_push($templateItems, $val);
         }
 
-        DB::beginTransaction();
-
-        $checklists = collect([]);
-        foreach ($request->input('data') as $data) {
-            $checklistData['object_id'] = $data['attributes']['object_id'];
-            $checklistData['object_domain'] = $data['attributes']['object_domain'];
-
-            $checklist = Checklist::create($checklistData);
-
-            foreach ($items as $key => $item) {
-                $items[$key]['checklist_id'] = $checklist->id;
-            }
-
-            Item::insert($items);
-
-            $checklist->load('items');
-
-            $checklists->push($checklist);
-        }
-
-        DB::commit();
+        $checklists = $checklistRepo->saveTemplateDomainAssignment(
+            $request->input('data'),
+            $templateChecklist,
+            $templateItems
+        );
 
         return ChecklistResource::collection($checklists);
     }

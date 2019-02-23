@@ -87,4 +87,40 @@ class ChecklistRepository
 
         DB::commit();
     }
+
+    /*
+    |   $data is from $request->input('data') containing data like this:
+    |   [
+    |       {
+    |           "attributes": {
+    |               "object_id": 1,
+    |               "object_domain": "deals"
+    |           }
+    |       }
+    |   ]
+    */
+    public function saveTemplateDomainAssignment($data, $templateChecklist, $templateItems)
+    {
+        DB::beginTransaction();
+
+        $checklists = collect([]);
+        foreach ($data as $val) {
+            $templateChecklist['object_id'] = $val['attributes']['object_id'];
+            $templateChecklist['object_domain'] = $val['attributes']['object_domain'];
+
+            $checklist = Checklist::create($templateChecklist);
+
+            foreach ($templateItems as $key => $item) {
+                $templateItems[$key]['checklist_id'] = $checklist->id;
+            }
+
+            Item::insert($templateItems);
+
+            $checklists->push($checklist);
+        }
+
+        DB::commit();
+
+        return $checklists;
+    }
 }
