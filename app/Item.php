@@ -17,6 +17,10 @@ class Item extends Model
         'is_completed' => false,
     ];
 
+    protected $casts = [
+        'is_completed' => 'boolean',
+    ];
+
     public function checklist()
     {
         return $this->belongsTo('App\Checklist');

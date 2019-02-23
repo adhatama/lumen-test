@@ -166,4 +166,56 @@ class ChecklistController extends Controller
 
         return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
+
+    public function completeItems(Request $request, $checklistId)
+    {
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $itemIds = collect($request->input('data'))->pluck('item_id');
+
+        Item::whereIn('id', $itemIds)->update(['is_completed' => true]);
+
+        $items = Item::whereIn('id', $itemIds)->get();
+
+        $data = [];
+        foreach ($items as $item) {
+            $val['item_id'] = $item->id;
+            $val['is_completed'] = $item->is_completed;
+            $val['checklist_id'] = $item->checklist->id;
+
+            array_push($data, $val);
+        }
+
+        return response()->json(['data' => $data], JsonResponse::HTTP_OK);
+    }
+
+    public function incompleteItems(Request $request, $checklistId)
+    {
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $itemIds = collect($request->input('data'))->pluck('item_id');
+
+        Item::whereIn('id', $itemIds)->update(['is_completed' => false]);
+
+        $items = Item::whereIn('id', $itemIds)->get();
+
+        $data = [];
+        foreach ($items as $item) {
+            $val['item_id'] = $item->id;
+            $val['is_completed'] = $item->is_completed;
+            $val['checklist_id'] = $item->checklist->id;
+
+            array_push($data, $val);
+        }
+
+        return response()->json(['data' => $data], JsonResponse::HTTP_OK);
+    }
 }

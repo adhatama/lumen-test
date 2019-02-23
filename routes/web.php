@@ -53,6 +53,12 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->delete('checklists/{checklistId}/items/{itemId}', [
         'as' => 'checklists.items.delete', 'uses' => 'ChecklistController@deleteItem',
     ]);
+    $router->post('checklists/{checklistId}/items/complete', [
+        'as' => 'checklists.items.complete', 'uses' => 'ChecklistController@completeItems',
+    ]);
+    $router->post('checklists/{checklistId}/items/incomplete', [
+        'as' => 'checklists.items.complete', 'uses' => 'ChecklistController@incompleteItems',
+    ]);
 });
 
 $router->get('user', ['middleware' => 'auth', function (Request $request) {
