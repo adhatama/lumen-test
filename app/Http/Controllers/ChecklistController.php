@@ -179,6 +179,14 @@ class ChecklistController extends Controller
 
         Item::whereIn('id', $itemIds)->update(['is_completed' => true]);
 
+        $countIncompleteItems = Item::where('checklist_id', $checklistId)
+            ->where('is_completed', false)
+            ->count();
+        if ($checklist->items()->count() > 0 && $countIncompleteItems === 0) {
+            Checklist::where('id', $checklistId)
+                ->update(['is_completed' => true]);
+        }
+
         $items = Item::whereIn('id', $itemIds)->get();
 
         $data = [];
@@ -204,6 +212,14 @@ class ChecklistController extends Controller
         $itemIds = collect($request->input('data'))->pluck('item_id');
 
         Item::whereIn('id', $itemIds)->update(['is_completed' => false]);
+
+        $countIncompleteItems = Item::where('checklist_id', $checklistId)
+            ->where('is_completed', false)
+            ->count();
+        if ($checklist->items()->count() > 0 && $countIncompleteItems > 0) {
+            Checklist::where('id', $checklistId)
+                ->update(['is_completed' => false]);
+        }
 
         $items = Item::whereIn('id', $itemIds)->get();
 
