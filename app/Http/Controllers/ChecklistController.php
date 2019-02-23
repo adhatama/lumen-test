@@ -13,7 +13,6 @@ use App\Item;
 use App\Template;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\TemplateItem;
 use App\Repositories\ChecklistRepository;
 
 class ChecklistController extends Controller
@@ -253,11 +252,12 @@ class ChecklistController extends Controller
         return new TemplateResource($template);
     }
 
-    public function saveTemplate(Request $request)
+    public function saveTemplate(Request $request, ChecklistRepository $checklistRepo)
     {
         $this->validate($request, [
             'data.attributes.name' => 'required',
             'data.attributes.checklist.description' => 'required',
+            'data.attributes.items' => 'required',
             'data.attributes.items.*.description' => 'required',
         ]);
 
@@ -268,25 +268,12 @@ class ChecklistController extends Controller
 
         $items = $attributes['items'];
 
-        DB::beginTransaction();
-
-        $template = Template::create($checklist);
-
-        $now = Carbon::now();
-        foreach ($items as $key => $item) {
-            $items[$key]['template_id'] = $template->id;
-            $items[$key]['created_at'] = $now;
-            $items[$key]['updated_at'] = $now;
-        }
-
-        TemplateItem::insert($items);
-
-        DB::commit();
+        $template = $checklistRepo->saveTemplate($checklist, $items);
 
         return new TemplateResource($template);
     }
 
-    public function updateTemplate(Request $request, $id)
+    public function updateTemplate(Request $request, ChecklistRepository $checklistRepo, $id)
     {
         $attributes = $request->input('data.attributes');
 
@@ -301,22 +288,7 @@ class ChecklistController extends Controller
             throw new NotFoundHttpException();
         }
 
-        DB::beginTransaction();
-
-        $template->update($checklist);
-
-        $template->items()->delete();
-
-        $now = Carbon::now();
-        foreach ($items as $key => $item) {
-            $items[$key]['template_id'] = $template->id;
-            $items[$key]['created_at'] = $now;
-            $items[$key]['updated_at'] = $now;
-        }
-
-        TemplateItem::insert($items);
-
-        DB::commit();
+        $checklistRepo->updateTemplate($template, $checklist, $items);
 
         return new TemplateResource($template);
     }
@@ -331,7 +303,7 @@ class ChecklistController extends Controller
 
         $template->delete();
 
-        return new TemplateResource($template);
+        return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
     public function assignTemplate(Request $request, $id)
