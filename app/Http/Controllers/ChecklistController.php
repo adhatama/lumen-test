@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Resources\Checklist as ChecklistResource;
+use App\Http\Resources\Item as ItemResource;
 use App\Checklist;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\JsonResponse;
+use App\Item;
 
 class ChecklistController extends Controller
 {
@@ -74,5 +76,53 @@ class ChecklistController extends Controller
         $checklist->delete();
 
         return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    public function indexItem(Request $request, $checklistId)
+    {
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        return new ChecklistResource($checklist, true);
+    }
+
+    public function getItem(Request $request, $checklistId, $itemId)
+    {
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $item = Item::find($itemId);
+
+        if (!$item) {
+            throw new NotFoundHttpException();
+        }
+
+        return new ItemResource($item);
+    }
+
+    public function saveItem(Request $request, $checklistId)
+    {
+        $this->validate($request, [
+            'data.attributes.description' => 'required',
+        ]);
+
+        $checklist = Checklist::find($checklistId);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $attributes = $request->input('data.attributes');
+        $attributes['checklist_id'] = $checklistId;
+
+        Item::create($attributes);
+
+        return new ChecklistResource($checklist, true);
     }
 }

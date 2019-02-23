@@ -17,6 +17,11 @@ class Checklist extends Model
         'is_completed' => false,
     ];
 
+    public function items()
+    {
+        return $this->hasMany('App\Item');
+    }
+
     public function setDueAttribute($value)
     {
         $this->attributes['due'] = Carbon::parse($value);

@@ -28,8 +28,6 @@ class CreateChecklistsItemsTemplatesTables extends Migration
 
         Schema::create('items', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('object_domain');
-            $table->string('object_id');
             $table->string('description');
             $table->boolean('is_completed');
             $table->datetime('completed_at')->nullable();
