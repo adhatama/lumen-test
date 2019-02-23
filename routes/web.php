@@ -34,7 +34,7 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->patch('checklists/{id}', [
         'as' => 'checklists.update', 'uses' => 'ChecklistController@update',
     ]);
-    $router->post('checklists/{id}', [
+    $router->delete('checklists/{id}', [
         'as' => 'checklists.delete', 'uses' => 'ChecklistController@delete',
     ]);
 });

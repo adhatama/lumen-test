@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Resources\Checklist as ChecklistResource;
 use App\Checklist;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Http\JsonResponse;
 
 class ChecklistController extends Controller
 {
@@ -23,10 +25,43 @@ class ChecklistController extends Controller
             'data.attributes.description' => 'required',
         ]);
 
-        $checklist = $request->input('data.attributes');
+        $attributes = $request->input('data.attributes');
 
-        $checklist = Checklist::create($checklist);
+        $checklist = Checklist::create($attributes);
 
         return new ChecklistResource($checklist);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $this->validate($request, [
+            'data.type' => 'required',
+            'data.id' => 'required',
+        ]);
+
+        $checklist = Checklist::find($id);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $attributes = $request->input('data.attributes');
+
+        $checklist->update($attributes);
+
+        return new ChecklistResource($checklist);
+    }
+
+    public function delete($id)
+    {
+        $checklist = Checklist::find($id);
+
+        if (!$checklist) {
+            throw new NotFoundHttpException();
+        }
+
+        $checklist->delete();
+
+        return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 }
