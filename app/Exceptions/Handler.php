@@ -88,11 +88,9 @@ class Handler extends ExceptionHandler
 
         $response['message'] = $exception->getMessage();
 
-        // We will add stacktrace to help debugging the unhandled Exception.
         if (env('APP_DEBUG')) {
             $response['file'] = $exception->getFile();
             $response['line'] = $exception->getLine();
-            $response['stack_trace'] = array_slice($exception->getTrace(), 0, 3);
         }
 
         return response()->json(
