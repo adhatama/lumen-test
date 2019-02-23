@@ -11,4 +11,14 @@ abstract class TestCase extends Laravel\Lumen\Testing\TestCase
     {
         return require __DIR__.'/../bootstrap/app.php';
     }
+
+    protected function login($email, $password)
+    {
+        $response = $this->call('POST', 'login', [
+            'email' => $email,
+            'password' => $password,
+        ]);
+
+        return json_decode($response->getContent())->data;
+    }
 }
