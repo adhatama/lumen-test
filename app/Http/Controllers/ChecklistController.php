@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Resources\Checklist as ChecklistResource;
 use App\Http\Resources\Item as ItemResource;
+use App\Http\Resources\Template as TemplateResource;
 use App\Checklist;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\JsonResponse;
 use App\Item;
+use App\Template;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\TemplateItem;
 
 class ChecklistController extends Controller
 {
@@ -233,5 +238,104 @@ class ChecklistController extends Controller
         }
 
         return response()->json(['data' => $data], JsonResponse::HTTP_OK);
+    }
+
+    public function indexTemplate(Request $request)
+    {
+        $templates = Template::paginate(config('app.pagination.per_page'));
+
+        return TemplateResource::collection($templates);
+    }
+
+    public function getTemplate(Request $request, $id)
+    {
+        $template = Template::find($id);
+
+        if (!$template) {
+            throw new NotFoundHttpException();
+        }
+
+        return new TemplateResource($template);
+    }
+
+    public function saveTemplate(Request $request)
+    {
+        $this->validate($request, [
+            'data.attributes.name' => 'required',
+            'data.attributes.checklist.description' => 'required',
+            'data.attributes.items.*.description' => 'required',
+        ]);
+
+        $attributes = $request->input('data.attributes');
+
+        $checklist = $attributes['checklist'];
+        $checklist['name'] = $attributes['name'];
+
+        $items = $attributes['items'];
+
+        DB::beginTransaction();
+
+        $template = Template::create($checklist);
+
+        $now = Carbon::now();
+        foreach ($items as $key => $item) {
+            $items[$key]['template_id'] = $template->id;
+            $items[$key]['created_at'] = $now;
+            $items[$key]['updated_at'] = $now;
+        }
+
+        TemplateItem::insert($items);
+
+        DB::commit();
+
+        return new TemplateResource($template);
+    }
+
+    public function updateTemplate(Request $request, $id)
+    {
+        $attributes = $request->input('data.attributes');
+
+        $checklist = $attributes['checklist'];
+        $checklist['name'] = $attributes['name'];
+
+        $items = $attributes['items'];
+
+        $template = Template::find($id);
+
+        if (!$template) {
+            throw new NotFoundHttpException();
+        }
+
+        DB::beginTransaction();
+
+        $template->update($checklist);
+
+        $template->items()->delete();
+
+        $now = Carbon::now();
+        foreach ($items as $key => $item) {
+            $items[$key]['template_id'] = $template->id;
+            $items[$key]['created_at'] = $now;
+            $items[$key]['updated_at'] = $now;
+        }
+
+        TemplateItem::insert($items);
+
+        DB::commit();
+
+        return new TemplateResource($template);
+    }
+
+    public function deleteTemplate(Request $request, $id)
+    {
+        $template = Template::find($id);
+
+        if (!$template) {
+            throw new NotFoundHttpException();
+        }
+
+        $template->delete();
+
+        return new TemplateResource($template);
     }
 }

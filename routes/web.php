@@ -22,6 +22,11 @@ $router->post('login', [
 ]);
 
 $router->group(['middleware' => 'auth'], function () use ($router) {
+    // Moved here to prevent routes shadowing
+    $router->get('checklists/templates', [
+        'as' => 'checklists.templates.index', 'uses' => 'ChecklistController@indexTemplate',
+    ]);
+
     $router->get('checklists', [
         'as' => 'checklists.index', 'uses' => 'ChecklistController@index',
     ]);
@@ -58,6 +63,19 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     ]);
     $router->post('checklists/{checklistId}/items/incomplete', [
         'as' => 'checklists.items.complete', 'uses' => 'ChecklistController@incompleteItems',
+    ]);
+
+    $router->get('checklists/templates/{id}', [
+        'as' => 'checklists.templates.get', 'uses' => 'ChecklistController@getTemplate',
+    ]);
+    $router->post('checklists/templates', [
+        'as' => 'checklists.templates.save', 'uses' => 'ChecklistController@saveTemplate',
+    ]);
+    $router->patch('checklists/templates/{id}', [
+        'as' => 'checklists.templates.update', 'uses' => 'ChecklistController@updateTemplate',
+    ]);
+    $router->delete('checklists/templates/{id}', [
+        'as' => 'checklists.templates.delete', 'uses' => 'ChecklistController@deleteTemplate',
     ]);
 });
 

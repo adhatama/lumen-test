@@ -35,4 +35,11 @@ class Checklist extends Model
     {
         return $this->attributes['due'] ? Carbon::parse($this->attributes['due'])->toIso8601String() : null;
     }
+
+    public function delete()
+    {
+        Item::where('checklist_id', $this->id)->delete();
+
+        return parent::delete();
+    }
 }
