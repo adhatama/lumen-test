@@ -1,21 +1,35 @@
-# Lumen PHP Framework
+# Demo REST API using Lumen
+This demo is intended to demonstrate REST API using Lumen.
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://poser.pugx.org/laravel/lumen-framework/d/total.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/lumen-framework/v/stable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/lumen-framework/v/unstable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://poser.pugx.org/laravel/lumen-framework/license.svg)](https://packagist.org/packages/laravel/lumen-framework)
+## Requirements
+- PHP 7++
+- MySQL
+- Postman
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+## Installation
+- Clone this repo
+- Run `composer install`
+- Setup your `.env`
+- Run `php artisan migrate --seed`.
+- Import [this Postman](https://www.getpostman.com/collections/cbfbd936a83407d69967) to get the list of available endpoints.
 
-## Official Documentation
+## Getting Started
+- We can start from Login using our dummy user from seeder. Call `POST Login` endpoint from Postman to get the token. 
+  - email: user@example.com
+  - password: secret
+- Use the token in the `Authorization` header for every request calls.
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+## Testing
 
-## Security Vulnerabilities
+### Setup
+- Create new env named `.env.testing` and set the `DB_DATABASE` to other than current database in `.env` (e.g. `lumen_test`).
+- Change the `phpunit.xml` `DB_` to match your `.env.testing` configuration.
+- Run `php artisan migrate --seed --env=testing` to fill the initial data for the testing DB. This command only need to run once.
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+### Run
+- Run `vendor/bin/phpunit` to run the test.
 
-## License
-
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## TODO
+- [ ] Add query string to filter, sort, and select certain fields in get list endpoints.
+- [ ] Make the setup of testing simpler, which is removing the multiple changes needed in `.env.testing` and `phpunit.xml` files. 
+- [ ] Add more tests.
